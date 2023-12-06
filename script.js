@@ -57,59 +57,46 @@ let users = [
 
 // Дан масив об'єктів. Вивести масив телефонних номерів користувачів, у яких баланс більше 2000 доларів. І знайти суму всіх балансів користувачів
 
-// функция создания нового массива с приведением баланса к числу 
-function usersBalanceToNumber (arr) {
-    // cоздаем глубокую копию DeepCopy
-    const newArr = JSON.parse(JSON.stringify(arr));
-    for (let i = 0 ; i < newArr.length ; i++){
-        //проверверяем что елемент явлется обьектом + существует нужный ключ + не является уже числом
-        if (typeof newArr[i] === 'object' && newArr[i].hasOwnProperty('balance') && typeof newArr[i].balance !== 'number'){
-            //если строка то выполняем преобразование, если не строка присваем значению 0;
-            if(typeof newArr[i].balance === 'string'){
-                //преобразовываеем строку из обьекта в число заменяя лишние символы
-                newArr[i].balance = +newArr[i].balance.replace('$', '').replace(',', '');
-            } else {
-                newArr[i].balance = 0;
+    // функция создания нового массива с приведением баланса к числу 
+    function usersBalanceToNumber (arr) {
+        // cоздаем DeepCopy и присваем переменной изменный новый массив;
+        const newArr = JSON.parse(JSON.stringify(arr)).map(element => {
+        return {
+                //переносим ключи и значения из старого массива  
+                ...element,
+                //Присваем ключу balance новое значение приведеное к числу
+                balance : +element.balance.replace(/[$,]/g, '')
             }
-        }
+        });
 
+        return newArr;
     }
-    return newArr;
-}
 
-//фунция суммирования балансов пользователей  
-function usersBalanceSum (arr) {
-    let sum = 0;
-    let result = "";
-    //вызываем функцию с новым массивом где Balance приведено к числу; 
-    const newArr = usersBalanceToNumber (arr);
-    //проходим циклом по всем єлементам массива
-    for (let i = 0 ; i < newArr.length ; i++){
-        //проверверяем что елемент явлется обьектом
-        if (typeof newArr[i] === 'object'){
-            //добовляем к сумме значение
-            sum += +newArr[i].balance;
-        }
+    // функция суммирования балансов пользователей  
+    function usersBalanceSum (arr) {
+
+        //вызываем функцию с новым массивом где Balance приведено к числу; 
+        const newArr = usersBalanceToNumber (arr);
+
+        // c помощью метода map получаем массив со значениями поля balance далее передаем массив в reduce которые производит суммирование
+        // обратно преобразовываеем полученое число в исходный формат из объекта
+        let sum = newArr.map((element) => element.balance).reduce((acc,currentValue) => acc + currentValue, 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        const result = `cума балансів користувачів: ${sum}`;
+
+        return result;
     }
-    //обратно преобразовываеем полученое число в формат из объекта
-    sum = sum.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    result = `cума балансів користувачів: ${sum}`;
-    return result;
-}
 
-// функция создания массива с номерами баланса больше value
-function getPhoneNumber (arr,value) {
-    let result = [];
-    //вызываем функцию с новым массивом где Balance приведено к числу; 
-    const newArr = usersBalanceToNumber (arr);
-    //Проходим циклом по каждому елементу и сравниваем значение с трубемым лимитом
-    newArr.forEach(element => {
-        if (element.balance > value){
-            result.push(element.phone);
-        }
-    });
-    return result;
-}
+    // функция создания массива с номерами баланса больше value
+    function getPhoneNumber (arr,value) {
 
-console.log(getPhoneNumber(users,2000));
-console.log(usersBalanceSum(users));
+        //вызываем функцию с новым массивом где Balance приведено к числу; 
+        const newArr = usersBalanceToNumber(arr);
+        // фильтруем массив по значению из value получаем новый отфильтрованный массив 
+        // затем с помощью map возращаем массив в котором содержится значения только ключа phone   
+        const result = newArr.filter(item =>(item.balance > value)).map(item => item.phone);
+        
+        return result;
+    }
+
+ console.log(getPhoneNumber(users,2000));
+ console.log(usersBalanceSum(users));
